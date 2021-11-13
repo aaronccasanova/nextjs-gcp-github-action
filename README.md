@@ -14,7 +14,7 @@ TEMPLATE=node npx @aacc/ginit nextjs-gcp-github-action
 ## Create a nextjs app with the `create-next-app` CLI.
 
 ```sh
-npx create-next-app --use-npm .
+npx create-next-app --use-npm --ts .
 ```
 
 ## Create a Dockerfile

@@ -120,11 +120,36 @@ mkdir -p .github/workflow && curl -o .github/workflow/cloud-run-deploy.yml https
 - Navigate to the repository actions tab and follow along the running workflow: e.g. `https://github.com/aaronccasanova/nextjs-gcp-github-action/actions`
 - Once the action finishes running, you will see a link to the deployed application. Simply replace the `***` in the Service URL with the GCP Project Name: e.g. `https://nextjs-gcp-github-action-app-4zsdsyxcrq-uw.a.run.app/`
 
-> IMPORTANT: The above link will not work until the application is made public or configured to use a custom domain. See how to make the service public in the following section.
+> IMPORTANT: The above link will not work until the application is made public or configured to use a custom domain. Learn more in the following sections:
+> - [Mapping a custom domain to your service (Recommended)](#map-a-custom-domain-to-your-service)
+> - [Make your service public](#make-your-service-public)
 
 ![image](https://user-images.githubusercontent.com/32409546/141663363-c4c7128d-ec48-4a43-95cc-b24b2dd77ef3.png)
 
-## Make your new service Public
+## Mapping a custom domain to your service
+
+> Note: We will be generally following the GCP [Mapping a custom domain to a service](https://cloud.google.com/run/docs/mapping-custom-domains) guide.
+
+- Open the [domain mappings](https://console.cloud.google.com/run/domains) page in the Google Cloud Console.
+- In the Domain Mappings page, click **Add Mapping**.
+- From the dropdown list in the Add Mapping form, select the service you are mapping the custom domain to.
+- Enter the domain name.
+- Select Continue.
+- You need to verify the ownership of a domain before being able to use it, unless you purchased your domain from Google. If you want to map subdomain.example.com, you should verify ownership of example.com. For more information on verifying domain ownership, refer to [Webmaster Central help](https://support.google.com/webmasters/answer/9008080?hl=en).
+  - On the Webmaster Central page, select the [Verify Your Property](https://search.google.com/search-console/ownership) button.
+  - In the top left sidebar, select the `Search property` dropdown and select `Add property`.
+  - Select the `Domain` property type and enter the domain name. (e.g. `example.com`)
+  - Make sure instructions for `Any DNS provider` is selected and copy the `TXT record` value.
+  - Navigate to your registrar and paste the `TXT record` value into the `TXT Record` field.
+  - Navigate back to the verify property page and select the `Verify` button.
+  - Lastly select `Done`.
+- Update your DNS records at your domain registrar web site using the DNS records displayed in the last step. You can display the records at any time by clicking **DNS Records** in the "..." action menu for a domain mapping.
+  - Note: If you use Cloudflare make sure your proxy is off and set to `DNS only` when updating your records.
+- Select `Done`.
+
+> Note: Name server propagation can take a while and thus you can periodically check the status of your domain here: https://toolbox.googleapps.com/apps/dig/
+
+## Make your service Public
 
 > Note: This is not recommended and should use a custom domain instead.
 

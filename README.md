@@ -116,7 +116,11 @@ mkdir -p .github/workflow && curl -o .github/workflow/cloud-run-deploy.yml https
 
 ## Push up your changes, wait for the actions to run, and visit the deployed application.
 
-- How to access you deployed application: TBD
+- Push your changes to the remote repository.
+- Navigate to the repository actions tab and follow along the running workflow: e.g. `https://github.com/aaronccasanova/nextjs-gcp-github-action/actions`
+- Once the action finishes running, you will see a link to the deployed application. Simply replace the `***` in the Service URL with the GCP Project Name: e.g. `https://nextjs-gcp-github-action-4zsdsyxcrq-uw.a.run.app/`
+
+![image](https://user-images.githubusercontent.com/32409546/141663363-c4c7128d-ec48-4a43-95cc-b24b2dd77ef3.png)
 
 ### Additional Information:
 

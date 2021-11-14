@@ -1,4 +1,6 @@
-name: nextjs-cloud-run-deploy
+# Adapted from: https://github.com/google-github-actions/deploy-cloudrun/blob/main/.github/workflows/example-workflow.yaml
+
+name: Build and Deploy to Cloud Run
 
 on:
   push:
@@ -6,48 +8,45 @@ on:
       - main
 
 env:
-  CLOUD_RUN_PROJECT_ID: ${{ secrets.CLOUD_RUN_PROJECT_NAME }}
+  # ID of the Google Cloud project.
+  PROJECT_ID: ${{ secrets.GCP_PROJECT }}
+  # Region in which the resource can be found.
   # Cloud Run Regions: https://cloud.google.com/run/docs/locations#services
-  CLOUD_RUN_REGION: us-west1
-  # Repo or Project Name
-  REPO_NAME: nextjs-gcp-github-action
+  REGION: us-west1
+  # ID of the Cloud Run Service to create.
+  SERVICE: nextjs-gcp-github-action-app
 
 jobs:
   build-and-deploy:
     name: Setup, Build, and Deploy
     runs-on: ubuntu-latest
     steps:
-
     - name: Checkout
       uses: actions/checkout@v2
 
-    # This step is where our service account will be authenticated
-    - uses: google-github-actions/setup-gcloud@v0.2.0
+    - name: Setup Cloud SDK
+      uses: google-github-actions/setup-gcloud@v0.2.0
       with:
-        project_id: ${{ secrets.CLOUD_RUN_PROJECT_NAME }}
-        service_account_key: ${{ secrets.CLOUD_RUN_SERVICE_ACCOUNT }}
-        service_account_email: ${{ secrets.CLOUD_RUN_SERVICE_ACCOUNT_EMAIL }}
+        project_id: ${{ env.PROJECT_ID }}
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        # Set to true to authenticate the Cloud Run action
+        export_default_credentials: true
 
-    - name: Enable the necessary APIs and enable docker auth
-      run: |-
-        gcloud services enable containerregistry.googleapis.com
-        gcloud services enable run.googleapis.com
-        gcloud --quiet auth configure-docker
+    - name: Authorize Docker push
+      run: gcloud auth configure-docker
 
-    - name: Build and tag image
+    - name: Build and Push Container
       run: |-
-        docker build . --tag "gcr.io/$CLOUD_RUN_PROJECT_ID/$REPO_NAME:$GITHUB_SHA"
+        docker build . -t gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{  github.sha }}
+        docker push gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{  github.sha }}
 
-    - name: Push image to GCR
-      run: |-
-        docker push gcr.io/$CLOUD_RUN_PROJECT_ID/$REPO_NAME:$GITHUB_SHA
+    - name: Deploy to Cloud Run
+      id: deploy
+      uses: google-github-actions/deploy-cloudrun@v0.4.0
+      with:
+        service: ${{ env.SERVICE }}
+        image: gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{  github.sha }}
+        region: ${{ env.REGION }}
 
-    - name: Deploy
-      run: |-
-        gcloud components install beta --quiet
-        gcloud beta run deploy $REPO_NAME --image gcr.io/$CLOUD_RUN_PROJECT_ID/$REPO_NAME:$GITHUB_SHA \
-          --project $CLOUD_RUN_PROJECT_ID \
-          --platform managed \
-          --region $CLOUD_RUN_REGION \
-          --allow-unauthenticated \
-          --quiet
+    - name: Show Output
+      run: echo ${{ steps.deploy.outputs.url }}

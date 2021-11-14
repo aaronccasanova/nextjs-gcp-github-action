@@ -2,7 +2,7 @@
 
 This walk through provides step by step instruction for creating a nextjs application and deploying it to Google Cloud Run with GitHub actions.
 
-## Initialize a local/remote git repository with the `@aacc/ginit` CLI.
+## Initialize a local/remote git repository with the [@aacc/ginit](https://github.com/aaronccasanova/ginit) CLI.
 
 ```sh
 cd ~/project

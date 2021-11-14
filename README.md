@@ -95,6 +95,28 @@ docker run -e PORT=8080 -p 4000:8080 nextjs-gcp-github-action
   * Make sure `JSON` is checked and select `Create`.
   * Place the download in a secure location. (such as: LastPass)
 
+## Enable Continuous Deployment with GitHub Actions
+
+## Create and edit the `cloud-run-deploy.yml` template.
+
+```
+mkdir -p .github/workflow && curl -o .github/workflow/cloud-run-deploy.yml https://gist.githubusercontent.com/aaronccasanova/94eec5dac0a59ae32ad9c93c5126fa87/raw/516698d0593f2032e5ada54ed148a68294c3aa38/cloud-run-deploy.yml
+```
+
+## Add the GitHub Action `secrets` to the repository.
+
+- Navigate to the repositories `settings/secrets` page: e.g. `https://github.com/aaronccasanova/nextjs-gcp-github-action/settings/secrets/actions`
+- Select the `New repository secret` button and add the following secrets:
+  - **`CLOUD_RUN_PROJECT_NAME`** — This is the project name we defined earlier. In our case we named it nextjs-app01.
+  - **`CLOUD_RUN_SERVICE_ACCOUNT`** — This is a base64 of the private key we downloaded awhile ago. Remember it is JSON file right? We have to convert it to base64 in order to be consumed in our workflow.
+    * macOS example (run in your terminal): `base64 <path_of_private_key_json>`
+  - **`CLOUD_RUN_SERVICE_ACCOUNT_EMAIL`** — This is the generated email when we finished creating our service account. You can get it by going back to the website.
+
+> Note: The above secrets and descriptions were extracted from [this article](https://medium.com/weekly-webtips/this-is-how-i-deploy-next-js-into-google-cloud-run-with-github-actions-1d7d2de9d203).
+
+## Push up your changes, wait for the actions to run, and visit the deployed application.
+
+- How to access you deployed application: TBD
 
 ### Additional Information:
 

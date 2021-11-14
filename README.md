@@ -20,7 +20,7 @@ npx create-next-app --use-npm --ts .
 ## Create a Dockerfile
 
 ```sh
-curl -o Dockerfile https://gist.githubusercontent.com/aaronccasanova/b1086e286627350c269e498e251c910e/raw/a3f1cdb052fb30e87065764d9ae9e6255b6661e5/Dockerfile
+curl -o Dockerfile https://gist.githubusercontent.com/aaronccasanova/b1086e286627350c269e498e251c910e/raw/9c06650829b454d382c73829d546eabaf8823cf6/Dockerfile
 ```
 
 ## Create a .dockerignore file.
@@ -29,7 +29,7 @@ curl -o Dockerfile https://gist.githubusercontent.com/aaronccasanova/b1086e28662
 curl -o .dockerignore https://gist.githubusercontent.com/aaronccasanova/2502450ab635406d03bebe55d7b913db/raw/db7adb5f9d3af7ad3597e5efb23777f5eb4fdb67/.dockerignore
 ```
 
-## Add `PORT` environment variable to the package.json.
+## Add a `PORT` environment variable to the package.json.
 > NOTE: This will be inject by Google Cloud Run.
 
 ```json
@@ -42,10 +42,12 @@ curl -o .dockerignore https://gist.githubusercontent.com/aaronccasanova/2502450a
 
 ## Test the application locally
 
+> Note: Both examples are accessible from `localhost:4000`
+
 - Locally run a production build:
 
 ```sh
-PORT=8080 npm start
+PORT=4000 npm start
 ```
 
 - Locally run a production docker build:
@@ -66,8 +68,6 @@ docker run -e PORT=8080 -p 4000:8080 nextjs-gcp-github-action
 
 3. Create a service account with permissions to interface with Google Cloud Run through GitHub actions.
 
-> Note: You can create a project specific Service Account or a generic one to use across multiple projects. In this walk through I will be creating a generic Service Account as I intent to use Bot/GitHub action to deploy many Nextjs applications.
-
 - Navigate the the [Service Accounts page](https://console.cloud.google.com/iam-admin/serviceaccounts?project=nextjs-gcp-github-action) and select your new project.
 
 - Select `Create Service Account` in the top navigation.
@@ -76,15 +76,13 @@ docker run -e PORT=8080 -p 4000:8080 nextjs-gcp-github-action
 
 - Select `Create and Continue` and proceed to adding the following permissions:
 
-  - **`Editor`** — This allows the service account to enable or disable APIs or installing updates from the Google Cloud SDK.
+  - **`Cloud Run Admin`** — Allows for the creation of new Cloud Run services.
 
-  - **`Cloud Run Admin`** — This allows the service account to run Cloud Run commands like pushing or deploying the application.
+  - **`Storage Admin`** — Allow push to Google Container Registry (this grants project level access, but recommend reducing this scope to bucket level permissions.)
 
-  - **`Storage Admin`** — This allows the service account to push the Docker image to Google Container Registry.
+  - **`Service Account User`** — Required to deploy to Cloud Run as service account.
 
-  - **`Service Account User`** — This allows the service account to deploy as a service account in Cloud Run.
-
-> Note: The above rules and descriptions were extracted from [this article](https://medium.com/weekly-webtips/this-is-how-i-deploy-next-js-into-google-cloud-run-with-github-actions-1d7d2de9d203).
+> Note: The above rules and descriptions were extracted from the [google-github-actions/deploy-cloudrun setup guide](https://github.com/google-github-actions/deploy-cloudrun#setup).
 
 - Select `Continue` and then without making any changes select `Done`.
 
@@ -100,27 +98,37 @@ docker run -e PORT=8080 -p 4000:8080 nextjs-gcp-github-action
 ## Create and edit the `cloud-run-deploy.yml` template.
 
 ```
-mkdir -p .github/workflow && curl -o .github/workflow/cloud-run-deploy.yml https://gist.githubusercontent.com/aaronccasanova/94eec5dac0a59ae32ad9c93c5126fa87/raw/516698d0593f2032e5ada54ed148a68294c3aa38/cloud-run-deploy.yml
+mkdir -p .github/workflow && curl -o .github/workflow/cloud-run-deploy.yml https://gist.githubusercontent.com/aaronccasanova/94eec5dac0a59ae32ad9c93c5126fa87/raw/1fd00a9c0470341166f38cfe199b168dd8a9954c/cloud-run-deploy.yml
 ```
+
+> Note: The above template was adapted from the official [google-github-actions/deploy-cloudrun example](https://github.com/google-github-actions/deploy-cloudrun/blob/main/.github/workflows/example-workflow.yaml).
 
 ## Add the GitHub Action `secrets` to the repository.
 
 - Navigate to the repositories `settings/secrets` page: e.g. `https://github.com/aaronccasanova/nextjs-gcp-github-action/settings/secrets/actions`
 - Select the `New repository secret` button and add the following secrets:
-  - **`CLOUD_RUN_PROJECT_NAME`** — This is the project name we defined earlier. In our case we named it nextjs-app01.
-  - **`CLOUD_RUN_SERVICE_ACCOUNT`** — This is a base64 of the private key we downloaded awhile ago. Remember it is JSON file right? We have to convert it to base64 in order to be consumed in our workflow.
-    * macOS example (run in your terminal): `base64 <path_of_private_key_json>`
-  - **`CLOUD_RUN_SERVICE_ACCOUNT_EMAIL`** — This is the generated email when we finished creating our service account. You can get it by going back to the website.
+  - **`GCP_PROJECT`** — Google Cloud project ID.
+  - **`GCP_SA_KEY`** — The downloaded service account key.
+    * Note: You can paste the JSON as is or convert it to base64.
+    * On macOS run `base64 <path_of_private_key_json>` in your terminal.
 
-> Note: The above secrets and descriptions were extracted from [this article](https://medium.com/weekly-webtips/this-is-how-i-deploy-next-js-into-google-cloud-run-with-github-actions-1d7d2de9d203).
+> Note: The above template was adapted from the official [google-github-actions/deploy-cloudrun example](https://github.com/google-github-actions/deploy-cloudrun/blob/main/.github/workflows/example-workflow.yaml).
 
 ## Push up your changes, wait for the actions to run, and visit the deployed application.
 
 - Push your changes to the remote repository.
 - Navigate to the repository actions tab and follow along the running workflow: e.g. `https://github.com/aaronccasanova/nextjs-gcp-github-action/actions`
-- Once the action finishes running, you will see a link to the deployed application. Simply replace the `***` in the Service URL with the GCP Project Name: e.g. `https://nextjs-gcp-github-action-4zsdsyxcrq-uw.a.run.app/`
+- Once the action finishes running, you will see a link to the deployed application. Simply replace the `***` in the Service URL with the GCP Project Name: e.g. `https://nextjs-gcp-github-action-app-4zsdsyxcrq-uw.a.run.app/`
+
+> IMPORTANT: The above link will not work until the application is made public or configured to use a custom domain. See how to make the service public in the following section.
 
 ![image](https://user-images.githubusercontent.com/32409546/141663363-c4c7128d-ec48-4a43-95cc-b24b2dd77ef3.png)
+
+## Make your new service Public
+
+> Note: This is not recommended and should use a custom domain instead.
+
+[Making a service public](https://cloud.google.com/run/docs/securing/managing-access#making_a_service_public)
 
 ### Additional Information:
 

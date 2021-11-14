@@ -5,6 +5,7 @@ This walk through provides step by step instruction for creating a nextjs applic
 ## Initialize a local/remote git repository with the [@aacc/ginit](https://github.com/aaronccasanova/ginit) CLI.
 
 ```sh
+nvm use 14
 cd ~/project
 mkdir nextjs-gcp-github-action
 cd nextjs-gcp-github-action
@@ -20,7 +21,7 @@ npx create-next-app --use-npm --ts .
 ## Create a Dockerfile
 
 ```sh
-curl -o Dockerfile https://gist.githubusercontent.com/aaronccasanova/b1086e286627350c269e498e251c910e/raw/9c06650829b454d382c73829d546eabaf8823cf6/Dockerfile
+curl -o Dockerfile https://gist.githubusercontent.com/aaronccasanova/b1086e286627350c269e498e251c910e/raw/95e0d1d5ef36510149ccf5c0763c44b61a20900b/Dockerfile
 ```
 
 ## Create a .dockerignore file.
@@ -47,6 +48,7 @@ curl -o .dockerignore https://gist.githubusercontent.com/aaronccasanova/2502450a
 - Locally run a production build:
 
 ```sh
+npm run build
 PORT=4000 npm start
 ```
 
@@ -93,12 +95,16 @@ docker run -e PORT=8080 -p 4000:8080 nextjs-gcp-github-action
   * Make sure `JSON` is checked and select `Create`.
   * Place the download in a secure location. (such as: LastPass)
 
+- Lastly, verify and/or enable the following APIs:
+  - [Container Registry API](https://console.developers.google.com/apis/api/containerregistry.googleapis.com)
+  - [Cloud Run API](https://console.developers.google.com/apis/api/run.googleapis.com)
+
 ## Enable Continuous Deployment with GitHub Actions
 
 ## Create and edit the `cloud-run-deploy.yml` template.
 
 ```
-mkdir -p .github/workflow && curl -o .github/workflow/cloud-run-deploy.yml https://gist.githubusercontent.com/aaronccasanova/94eec5dac0a59ae32ad9c93c5126fa87/raw/1fd00a9c0470341166f38cfe199b168dd8a9954c/cloud-run-deploy.yml
+mkdir -p .github/workflows && curl -o .github/workflows/cloud-run-deploy.yml https://gist.githubusercontent.com/aaronccasanova/94eec5dac0a59ae32ad9c93c5126fa87/raw/1fd00a9c0470341166f38cfe199b168dd8a9954c/cloud-run-deploy.yml
 ```
 
 > Note: The above template was adapted from the official [google-github-actions/deploy-cloudrun example](https://github.com/google-github-actions/deploy-cloudrun/blob/main/.github/workflows/example-workflow.yaml).
@@ -120,11 +126,22 @@ mkdir -p .github/workflow && curl -o .github/workflow/cloud-run-deploy.yml https
 - Navigate to the repository actions tab and follow along the running workflow: e.g. `https://github.com/aaronccasanova/nextjs-gcp-github-action/actions`
 - Once the action finishes running, you will see a link to the deployed application. Simply replace the `***` in the Service URL with the GCP Project Name: e.g. `https://nextjs-gcp-github-action-app-4zsdsyxcrq-uw.a.run.app/`
 
-> IMPORTANT: The above link will not work until the application is made public or configured to use a custom domain. Learn more in the following sections:
-> - [Mapping a custom domain to your service (Recommended)](#map-a-custom-domain-to-your-service)
+> IMPORTANT: The above link will not work until the application is made public and optionally configured to use a custom domain. Learn more in the following sections:
 > - [Make your service public](#make-your-service-public)
+> - [Mapping a custom domain to your service (Recommended)](#map-a-custom-domain-to-your-service)
 
 ![image](https://user-images.githubusercontent.com/32409546/141663363-c4c7128d-ec48-4a43-95cc-b24b2dd77ef3.png)
+
+## Make your service Public
+
+> Note: This is not recommended and should use a custom domain instead.
+- [Setting ingress](https://cloud.google.com/run/docs/securing/ingress)
+   -  Follow the `configuring an existing service` steps.
+   - Navigate to the service.
+   - Select the `Triggers` tab.
+   - Select the `Allow unauthenticated invocations` radio button.
+   - Select `Save`.
+- OR... Follow the manual steps in the [Making a service public](https://cloud.google.com/run/docs/securing/managing-access#making_a_service_public) guide.
 
 ## Mapping a custom domain to your service
 
@@ -148,12 +165,6 @@ mkdir -p .github/workflow && curl -o .github/workflow/cloud-run-deploy.yml https
 - Select `Done`.
 
 > Note: Name server propagation can take a while and thus you can periodically check the status of your domain here: https://toolbox.googleapps.com/apps/dig/
-
-## Make your service Public
-
-> Note: This is not recommended and should use a custom domain instead.
-
-[Making a service public](https://cloud.google.com/run/docs/securing/managing-access#making_a_service_public)
 
 ### Additional Information:
 
